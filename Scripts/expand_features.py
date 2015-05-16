@@ -1,14 +1,20 @@
 import get_features
 
 def expand_features(apart):
-	
 	# get total number of rooms
 	num_rooms_string = apart["number_rooms"]
+	apart["number_rooms"] = ""
+	apart["number_bedrooms"] = ""
 	num_rooms_list = []
 	for s in num_rooms_string.split():
 		if s.isdigit():
-			num_rooms_string.append(int(s))
-	apart["number_rooms"] = num_rooms_list
+			num_rooms_list.append(int(s))
+	if len(num_rooms_list) == 2:
+		apart["number_rooms"] = num_rooms_list[0]
+		apart["number_of_bedrooms"] = num_rooms_list[1]
+	if len(num_rooms_list) == 1:
+		apart["number_of_rooms"] = num_rooms_list[0]
+
 
 	# classify type of apartment
 	ap_typ = apart["type_of_apartment"]
@@ -31,7 +37,7 @@ def expand_features(apart):
 	else: apart["shared entrance"] = 0
 	
 	if ap_typ.lower().find("mezzanine") != -1:
-	apart["type_of_apartment"] = "mezzanine"
+		apart["type_of_apartment"] = "mezzanine"
 	if ap_typ.lower().find("galleried") != -1:
 		apart["type_of_apartment"] = "galleried"
 
@@ -87,22 +93,83 @@ def expand_features(apart):
 	# insulation refinement. From now on the binary_feat function is used.
 
 	insulation = apart["insulation"]
-	binary_feat(insulation, "completely", "completely_insulated")
-	binary_feat(insulation, "double glazing")
-	binary_feat(insulation, "floor insulation")
-	binary_feat(insulation, "floor insulation")
-	binary_feat(insulation, "secondary glazing")
-	binary_feat(insulation, "insulated walls")
+	binary_feat(insulation, "completely", apart, "completely_insulated")
+	binary_feat(insulation, "double glazing", apart)
+	binary_feat(insulation, "floor insulation", apart)
+	binary_feat(insulation, "floor insulation", apart)
+	binary_feat(insulation, "secondary glazing", apart)
+	binary_feat(insulation, "insulated walls", apart)
 
-def binary_feat(s, target, name = 0):
-	if s.lower().find(target) != -1:
-		if name == 0:
+	#balcony
+	balcony = apart["balcony"]
+	binary_feat(balcony, "roof terrace", apart)
+	binary_feat(balcony, "french balcony", apart)
+	binary_feat(balcony, "balcony present", apart, "balcony")
+	binary_feat(balcony, "roof terrace", apart)
+
+	#number of bathrooms
+	number_baths = apart["number_of_bathrooms"]
+	apart["number_of_bathrooms"] = ''
+	apart["number_of_toilets"] = ''
+	num_baths_list = []
+	for s in number_baths.split():
+		if s.isdigit():
+			num_baths_list.append(int(s))
+	if len(num_baths_list) == 2:
+		apart["number_of_bathrooms"] = num_baths_list[0]
+		apart["number_of_toilets"] = num_baths_list[1]
+	if len(num_baths_list) == 1:
+		apart["number_of_bathrooms"] = num_baths_list[0]
+
+	# bathroom facilities
+
+	bathroom_facilities = apart["bathroom_facilities"]
+	binary_feat(bathroom_facilities, 'jacuzzi', apart)
+	binary_feat(bathroom_facilities, 'steam cabin', apart)
+	numerical_feat(bathroom_facilities, 'shower', apart, "number of showers")
+	numerical_feat(bathroom_facilities, 'bath', apart, 'number of baths')
+	numerical_feat(bathroom_facilities, 'toilet', apart, 'number of toilets')
+	binary_feat(bathroom_facilities, 'sauna', apart)
+
+	#Boiler
+
+
+	return apart
+
+def binary_feat(s, target, apart, name = ""):
+	outcome = s.lower().find(target)
+	if outcome != -1:
+		if name == "":
 			apart[target] = 1
+			return apart, outcome
 		else: apart[name] = 1
-	else: 
-		if name == 0:
-			apart[target] = 0
-		else: apart[name] = 0
+#		return apart, outcome
+	else:
+		if name == "":
+			apart[target] = ''
+			return apart, outcome
+		else: apart[name] = ''
+#		return apart, outcome
+
+def numerical_feat(s, target, apart, name):
+	outcome = s.lower().find(target)
+	if outcome != -1:
+		value_target = s[:outcome].strip()[-1]
+		if value_target.isdigit():
+			apart[name] = int(value_target)
+		else: apart[name] = 1
+		return apart
+	else:
+		apart[name] = ''
+		return apart
+
+
+
+
+
+
+
+
 
 
 

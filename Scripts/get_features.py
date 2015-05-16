@@ -279,4 +279,4 @@ def get_kenmerken(page, name):
 
 if __name__ == "__main__":
     get_features(sample_url)
-#    get_features(sample_url_rented)
+    get_features(sample_url_rented)
