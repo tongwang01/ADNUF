@@ -4,99 +4,65 @@ import get_features_koop
 import unicodecsv
 import crawl_fast_koop
 import threading
+import time
 
 sample_url = "http://www.funda.nl/koop/amsterdam/appartement-49453167-van-boetzelaerstraat-34-2/"
 
 
-def get_inventory(inventory):
-	#Read in list of huur urls, and store in the list huur
-	huur, verhuurd, koop, verkocht = crawl_fast_koop.get_aparts(60, 230, 390, 760)
-#	huur = []
-#	with open("fundaAmsterdamApart_huur_20150502.csv", "rb") as huur_file:
-#		huur_reader = csv.reader(huur_file)
-#		huur_headers = huur_reader.next()
-#		for row in huur_reader:
-#			huur.append(row)
-#	verhuurd = []
-#	with open("fundaAmsterdamApart_verhuurd_20150502.csv", "rb") as verhuurd_file:
-#		verhuurd_reader = csv.reader(verhuurd_file)
-#		verhuurd_headers = verhuurd_reader.next()
-#		for row in verhuurd_reader:
-#			verhuurd.append(row)
-	#Open output files
-#	output = unicodecsv.writer(open("fundaInventory_all_20150516.csv", "wb"), encoding='utf-8', delimiter='|')
-	threading_output = unicodecsv.writer(open("fundaInventory_all_threading_20150516.csv", "wb"), encoding='utf-8', delimiter='|')
-	failed_urls = 	unicodecsv.writer(open("failed_urls_all_threading_20150516.csv", "wb"), encoding='utf-8', delimiter='|')
-	#Get keys, write header row
-	sample = get_features_koop.get_features(sample_url)
-	threading_output.writerow(sample.keys())
+def get_inventory(inventory, url_list):
+#	failed_urls = 	unicodecsv.writer(open("failed_urls_all_threading_20150516.csv", "wb"), encoding='utf-8', delimiter='|')
 	count = 0
 	#Loop through all huur and verhuurd urls
-
-	print "Now gathering huur properties :)"
-	for url in huur:
+	for row in url_list:
 		try:
-			apart = get_features_koop.get_features(url)
-			apart["type"] = "huur"
+			apart = get_features_koop.get_features(row[0])
+			apart["type"] = row[1]
 			inventory.append(apart)
 		except:
-			print "error url:" + url
+			print "error url:" + row[0]
 			print sys.exc_info()
-			failed_urls.writerow([url, sys.exc_info()])
+#			failed_urls.writerow([row[0], sys.exc_info()])
 		count += 1
 		if count % 100 == 0:
 			print "We have gathered properties: " + str(count)
+		time.sleep(2)
 
-
-	print "Now gathering verhuurd properties :)"
-	for url in verhuurd:
-		try:
-			apart = get_features_koop.get_features(url)
-			apart["type"] = "verhuurd"
-			inventory.append(apart)
-		except:
-			print "error url:" + url
-			failed_urls.writerow([url, sys.exc_info()])
-			print sys.exc_info()
-		count += 1
-		if count % 100 == 0:
-			print "We have gathered properties: " + str(count)
-
-	print "Now gathering koop properties :)"
-	for url in koop:
-		try:
-			apart = get_features_koop.get_features(url)
-			apart["type"] = "koop"
-			inventory.append(apart)
-		except:
-			print "error url:" + url
-			print sys.exc_info()
-			failed_urls.writerow([url, sys.exc_info()])
-		count += 1		
-		if count % 100 == 0:
-			print "We have gathered properties: " + str(count)
-
-	print "Now gathering verkocht properties :)"
-	for url in verkocht:
-		try:
-			apart = get_features_koop.get_features(url)
-			apart["type"] = "verkocht"
-			inventory.append(apart)
-		except:
-			print "error url:" + url
-			print sys.exc_info()
-			failed_urls.writerow([url, sys.exc_info()])
-		count += 1
-		if count % 100 == 0:
-			print "We have gathered properties: " + str(count)
+def get_chunks(MyList, n):
+	return [MyList[x:x+n] for x in range(0, len(MyList), n)]
 
 def main():
 	inventory = []
-	for i in range(10):
-		t = threading.Thread(target = get_inventory, args=(inventory,))
+	huur, verhuurd, koop, verkocht = crawl_fast_koop.get_aparts(60, 230, 390, 760)
+	url_list = []
+	#Compile the four lists into one
+	for item in huur:
+		url_list.append([item, "huur"])
+	for item in verhuurd:
+		url_list.append([item, "verhurrd"])
+	for item in koop:
+		url_list.append([item, "koop"])
+	for item in verkocht:
+		url_list.append([item, "verkocht"])
+	print "Done getting all the urls!"	
+
+	new_url_list = get_chunks(url_list, 2000)
+	threads = []
+	for i in range(len(new_url_list)):
+		t = threading.Thread(target = get_inventory, args=(inventory, new_url_list[i], ))
+		threads.append(t)
 		t.start()
+	for t in threads:
+		t.join()
+		
+	print "Done getting all the features!"
+
+	threading_output = unicodecsv.writer(open("fundaInventory_all_threading_20150517.csv", "wb"), encoding='utf-8', delimiter='|')
+	sample = get_features_koop.get_features(sample_url)
+	sample["type"] = "sample"
+	threading_output.writerow(sample.keys())
 	for row in inventory:
-		threading_output.writerow(apart.values())
+		threading_output.writerow(row.values())
+	print "Done writing output file!"
 
 if __name__ == "__main__":
     main()

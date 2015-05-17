@@ -262,7 +262,7 @@ def get_features(input_url):
 	if asking_price1 == "":
 		apart["asking_price"] = ""
 	else:
-		asking_price2 = extract_string(asking_price1, '<span class="price-wrapper">&euro;&nbsp;', ' k.k.')
+		asking_price2 = extract_string(asking_price1, '<span class="price-wrapper">&euro;&nbsp;', ' ')
 		asking_price3 = float(asking_price2.replace(",", ""))
 		asking_price = int(asking_price3)
 		apart["asking_price"] = asking_price
