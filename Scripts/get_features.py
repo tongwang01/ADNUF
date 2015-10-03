@@ -1,22 +1,26 @@
 import csv
 import requests
+import datetime
 
 #Create sample url for testing
-error_url1 = "http://www.funda.nl/huur/amsterdam/appartement-84615938-apollolaan-77-3/"
+error_url = "http://www.funda.nl/huur/verhuurd/amsterdam/appartement-48332819-prinsengracht-699-ii/"
 base_url = "http://www.funda.nl"
-sample_url = "http://www.funda.nl/huur/amsterdam/appartement-49462700-keizersgracht-107-b"
-sample_url_rented = "http://www.funda.nl/huur/verhuurd/amsterdam/appartement-84741095-prinsengracht-673-a-2/"
+sample_url = "http://www.funda.nl/koop/amsterdam/appartement-49470962-cruquiuskade-143/"
+sample_url_rented = "http://www.funda.nl/koop/verkocht/amsterdam/huis-48992486-landsmeerderdijk-88/"
 
 #Open output file
 #output_file = csv.writer(open("fundaAmsterdamFeatures.csv", "wb"))
 
 #Define function to get features on a page
 def get_features(input_url):
+	"""Extract features from a page from the html code"""
 	apart = {}
 #Get the relevant pages in English
 	page = force_en(input_url)  #Main page
 	page_f = force_en(input_url + 'kenmerken/')   #Features
 	page_d = force_en(input_url + 'omschrijving/') #Descriptions
+#Get crawling date
+	apart["snapshot_date"] = datetime.datetime.now().strftime('%Y-%m-%d')
 #Get id
 	id = extract_string(page, "appartement-", "/")
 	apart["id"] = id
@@ -81,6 +85,12 @@ def get_features(input_url):
 	apart["listed_since"] = listed_since
 #Get status
 	status = get_kenmerken(page_f, 'Status')
+	if status.find("VERHUURD") != -1:
+		status = "Rented"
+	elif status.find("VERKOCHT") != -1:
+		status = "Sold"
+	else:
+		status = "Available"
 	apart['status'] = status
 #Get acceptance
 	acceptance = get_kenmerken(page_f, 'Acceptance')
@@ -144,8 +154,16 @@ def get_features(input_url):
 	apart["facilities"] = get_kenmerken(page_f, 'Facilities')
     
 #Get energy_label
-#	energy_label = get_kenmerken(page_f, 'Not required')
-#	apart['energy_label'] = energy_label
+	energy_label1 = extract_string(page_f, 'Energy label', '<span class="specs-ad">')
+	if energy_label1 == -1:
+		energy_label = ""
+	else:
+		energy_label2 = extract_string(energy_label1, '<span class="', '">')
+		if energy_label2.find("specs-val") != -1:
+			energy_label = ""
+		else:
+			energy_label = energy_label2
+	apart['energy_label'] = energy_label
 #Get insulation
 	insulation = get_kenmerken(page_f, 'Insulation')
 	apart['insulation'] = insulation
@@ -230,14 +248,68 @@ def get_features(input_url):
 		apart["hood_avg_property_value"] = hood_avg_property_value
 	else:
 		apart["hood_avg_property_value"] = ""
+#New stuff for koop properties
+#Get top house
+	top_house = page.find('<span class="item-top">')
+	if top_house == -1:
+		apart["top_house"] = 0
+	else:
+		apart["top_house"] = 1
+#Get open house
+	open_house = page.find('<span class="item-open')
+	if open_house == -1:
+		apart["open_house"] = 0
+	else:
+		apart["open_house"] = 1
+#Get asking price
+	asking_price1 = get_kenmerken(page_f, 'Asking price')
+	if asking_price1 == "":
+		apart["asking_price"] = ""
+	else:
+		asking_price2 = extract_string(asking_price1, '<span class="price-wrapper">&euro;&nbsp;', ' ')
+		asking_price3 = float(asking_price2.replace(",", ""))
+		asking_price = int(asking_price3)
+		apart["asking_price"] = asking_price
+#Get last asking price (for sold properties)
+	last_asking_price1 = get_kenmerken(page_f, 'Last asking price')
+	if last_asking_price1 == "":
+		apart["last_asking_price"] = ""
+	else:
+		last_asking_price2 = extract_string(last_asking_price1, '<span class="price-wrapper">&euro;&nbsp;', ' ')
+#		print last_asking_price1
+#		print last_asking_price2
+		last_asking_price3 = float(last_asking_price2.replace(",", ""))
+		last_asking_price = int(last_asking_price3)
+		apart["last_asking_price"] = last_asking_price
+#Get first selling price (for sold properties)
+	first_selling_price1 = get_kenmerken(page_f, 'First selling price')
+	if first_selling_price1 == "":
+		apart["first_selling_price"] = ""
+	else:
+		first_selling_price2 = extract_string(first_selling_price1, '<span class="price-wrapper">&euro;&nbsp;', ' ')
+		first_selling_price3 = float(first_selling_price2.replace(",", ""))
+		first_selling_price = int(first_selling_price3)
+		apart["first_selling_price"] = first_selling_price
+#Get Verhuurdatum
+	date_of_rent = get_kenmerken(page_f, 'Verhuurdatum')
+	apart["date_of_rent"] = date_of_rent
+#Get offered since
+	offered_since = get_kenmerken(page_f, 'Offered since')
+	apart["offered_since"] = offered_since
+#Get date_of_sale
+	date_of_sale = get_kenmerken(page_f, 'Date of sale')
+	apart["date_of_sale"] = date_of_sale
+#Get ownership status
+	ownership_situation = get_kenmerken(page_f, 'Ownership situation')
+	apart["ownership_situation"] = ownership_situation
 
-
-#Print apart so far
 #	print apart
+
 	return apart
 
 #Define function to force english version of a page
 def force_en(input_url):
+	"""Force funda to return the English page instead of the Dutch"""
 	r = requests.get(input_url)
 	page0 = r.text
 	lang = str(extract_string(page0, '<a class="lng-slct" rel="nofollow" href="', '">'))
@@ -252,13 +324,17 @@ def force_en(input_url):
 
 
 def extract_string(page, start_text, end_text):
+	"""Extract string given start text and end text"""
 	if page.find(start_text) == -1:
 		return -1
 	else:
 		result_start = page.find(start_text) + len(start_text)
 		result_end = page.find(end_text, result_start)
-		result = page[result_start:result_end]
-		return result
+		if result_end != -1:
+			result = page[result_start:result_end]
+			return result
+		else:
+			return -1
 
 def find_all_subs(a_str, sub):
     start = 0
@@ -278,5 +354,7 @@ def get_kenmerken(page, name):
 		return value
 
 if __name__ == "__main__":
-    get_features(sample_url)
-    get_features(sample_url_rented)
+#	get_features(sample_url)
+#	get_features(sample_url_rented)
+	print get_features(sample_url)
+#	print get_features(sample_url_rented)
