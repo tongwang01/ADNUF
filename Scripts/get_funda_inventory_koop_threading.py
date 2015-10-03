@@ -56,7 +56,7 @@ def main():
 		
 	print "Done getting all the features!"
 
-	threading_output = unicodecsv.writer(open("fundaInventory_all_threading_20150517.csv", "wb"), encoding='utf-8', delimiter='|')
+	threading_output = unicodecsv.writer(open("fundaInventory_all_threading_20150816.csv", "wb"), encoding='utf-8', delimiter='|')
 	sample = get_features_koop.get_features(sample_url)
 	sample["type"] = "sample"
 	threading_output.writerow(sample.keys())
