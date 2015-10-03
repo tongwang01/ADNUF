@@ -4,7 +4,6 @@ funda_base_url = 'http://www.funda.nl'
 
 
 def get_next_target(s):
-
 	start_link = s.find('<a href=')
 	if start_link!= -1:
 		#print "start link:", start_link
