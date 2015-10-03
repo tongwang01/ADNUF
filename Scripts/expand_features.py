@@ -197,16 +197,16 @@ def expand_features(apart):
 	else:
 		try:
 			dateobj = parser.parse(listed)
-			days = apart['snapshot_date'] - dateobj
+			snapshot_date = parser.parse(apart['snapshot_date'])
+			days = snapshot_date - dateobj
 			apart['days_since'] = days
-			print apart['snapshot_date']
 		except:
 			apart['days_since'] = ''
 
 
-
-
-
+p = get_features.get_features('http://www.funda.nl/koop/amsterdam/appartement-49502091-tolstraat-36/kenmerken/')
+expand_features(p)
+print p['days_since']
 
 
 
