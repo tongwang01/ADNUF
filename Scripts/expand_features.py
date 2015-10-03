@@ -26,7 +26,7 @@ def numerical_feat(s, target, apart, name):
 			apart[name] = 1
 			return apart
 		if value_target[-1].isdigit():
-			apart[name] = int(value_target)
+			apart[name] = int(value_target[-1])
 		else: apart[name] = 1
 		return apart
 	else:
@@ -203,10 +203,16 @@ def expand_features(apart):
 		except:
 			apart['days_since'] = ''
 
+def main():
+	sample_url = 'http://www.funda.nl/huur/amsterdam/appartement-49594203-herengracht-132-iv/'
+	p = get_features.get_features(sample_url)
+	print "step 1"
+	expand_features(p)
+	print "step 2"
+	print p
 
-p = get_features.get_features('http://www.funda.nl/koop/amsterdam/appartement-49502091-tolstraat-36/kenmerken/')
-expand_features(p)
-print p['days_since']
+if __name__ == "__main__":
+    main()
 
 
 
