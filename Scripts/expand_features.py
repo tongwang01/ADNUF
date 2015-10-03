@@ -1,4 +1,41 @@
 import get_features
+from datetime import datetime
+from dateutil import parser
+
+
+def binary_feat(s, target, apart, name = ""):
+	outcome = s.lower().find(target)
+	if outcome != -1:
+		if name == "":
+			apart[target] = 1
+			return apart, outcome
+		else: apart[name] = 1
+#		return apart, outcome
+	else:
+		if name == "":
+			apart[target] = ''
+			return apart, outcome
+		else: apart[name] = ''
+#		return apart, outcome
+
+def numerical_feat(s, target, apart, name):
+	outcome = s.lower().find(target)
+	if outcome != -1:
+		value_target = s[:outcome].strip()
+		if value_target == "":
+			apart[name] = 1
+			return apart
+		if value_target[-1].isdigit():
+			apart[name] = int(value_target)
+		else: apart[name] = 1
+		return apart
+	else:
+		apart[name] = ''
+		return apart
+
+
+
+
 
 def expand_features(apart):
 	# get total number of rooms
@@ -133,35 +170,39 @@ def expand_features(apart):
 
 	#Boiler
 
+	boiler = apart["CH_boiler"].lower()
 
-	return apart
+	binary_feat(boiler, 'in ownership', apart, "boiler in ownership")
+	binary_feat(boiler, 'gas fired', apart, 'gas fired boiler')
 
-def binary_feat(s, target, apart, name = ""):
-	outcome = s.lower().find(target)
-	if outcome != -1:
-		if name == "":
-			apart[target] = 1
-			return apart, outcome
-		else: apart[name] = 1
-#		return apart, outcome
+	#Building insurance
+
+	insurance = apart['building_insurance'].lower()
+	binary_feat(insurance, 'yes', apart, 'building insurance')
+
+	#Listed since
+
+	listed = apart['listed_since'].lower()
+	w = listed.find("week")
+	m = listed.find("month")
+
+	if listed.find('6+ months') != -1:
+		apart['days_since'] = 6*30
+	elif w != -1:
+		if listed[:w].strip()[-1].isdigit():
+			apart['days_since'] = int(listed[:w].strip()[-1])*7
+	elif m != -1:
+		if listed[:m].strip()[-1].isdigit():
+			apart['days_since'] = int(listed[:m].strip()[-1])*4*7
 	else:
-		if name == "":
-			apart[target] = ''
-			return apart, outcome
-		else: apart[name] = ''
-#		return apart, outcome
+		try:
+			dateobj = parser.parse(listed)
+			days = apart['snapshot_date'] - dateobj
+			apart['days_since'] = days
+			print apart['snapshot_date']
+		except:
+			apart['days_since'] = ''
 
-def numerical_feat(s, target, apart, name):
-	outcome = s.lower().find(target)
-	if outcome != -1:
-		value_target = s[:outcome].strip()[-1]
-		if value_target.isdigit():
-			apart[name] = int(value_target)
-		else: apart[name] = 1
-		return apart
-	else:
-		apart[name] = ''
-		return apart
 
 
 
