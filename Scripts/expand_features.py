@@ -1,6 +1,7 @@
 import get_features
 from datetime import datetime
 from dateutil import parser
+import re
 
 
 def binary_feat(s, target, apart, name = ""):
@@ -26,7 +27,7 @@ def numerical_feat(s, target, apart, name):
 			apart[name] = 1
 			return apart
 		if value_target[-1].isdigit():
-			apart[name] = int(value_target[-1])
+			apart[name] = int(value_target)
 		else: apart[name] = 1
 		return apart
 	else:
@@ -203,20 +204,61 @@ def expand_features(apart):
 		except:
 			apart['days_since'] = ''
 
-def main():
-	sample_url = 'http://www.funda.nl/huur/amsterdam/appartement-49594203-herengracht-132-iv/'
-	p = get_features.get_features(sample_url)
-	print "step 1"
-	expand_features(p)
-	print "step 2"
-	print p
+	#e_location
 
-if __name__ == "__main__":
-    main()
+	location = apart['e_location'].lower()
+	binary_feat(location, 'center', apart, 'central location')
+	binary_feat(location, 'residential', apart, 'residential neighbourhood')
+	binary_feat(location, 'water', apart, 'near water')
+	binary_feat(location, 'busy road', apart, 'near busy road')
+	binary_feat(location, 'unobstructed surrounding view', apart, 'unobstructed view')
+	binary_feat(location, 'park', apart, 'near park')
+	binary_feat(location, 'quiet road', apart, 'near quiet road')
+	binary_feat(location, 'sheltered', apart, 'sheltered location')
+	binary_feat(location, 'forest', apart, 'near forest')
+	binary_feat(location, 'rural', apart, 'rural area')
+	binary_feat(location, 'freestanding', apart, 'freestanding location')
+	binary_feat(location, 'wooded', apart, 'wooded surroundings')
+
+	#facilities
+
+	facilities = apart['s_facilities'].lower()
+	binary_feat(facilities, 'electricity', apart)
+	binary_feat(facilities, 'heating', apart)
+	binary_feat(facilities, 'running water', apart)
+
+	#address
+
+	location_string = apart['address']
+	postcode = re.compile(r'\d\d\d\d\s\w\w')
+	m = postcode.search(location_string)
+	apart['postcode'] = m.group()
+	apart['region identifier'] = m.group()[:2]
+	apart['street identifier'] = (m.group()[2:4], m.group()[5:])
+
+	street = re.compile(r'\D*')
+	apart['street'] = street.match(location_string).group().rstrip()
+
+	number = re.compile(r'\d+')
+	n = number.search(location_string)
+	apart['street number'] = n.group()
+
+	apart['intern'] = location_string[n.end(): m.start()]
+
+
+	#number of rooms
+
+	num_rooms
 
 
 
+p = get_features.get_features('http://www.funda.nl/koop/amsterdam/appartement-49502091-tolstraat-36/kenmerken/')
+expand_features(p)
 
+print p['street']
+print p['street number']
+print type(p['intern'])
+print p['postcode']
 
 
 
