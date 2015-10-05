@@ -27,7 +27,7 @@ def numerical_feat(s, target, apart, name):
 			apart[name] = 1
 			return apart
 		if value_target[-1].isdigit():
-			apart[name] = int(value_target)
+			apart[name] = int(value_target[-1])
 		else: apart[name] = 1
 		return apart
 	else:
@@ -224,7 +224,7 @@ def expand_features(apart):
 
 	facilities = apart['s_facilities'].lower()
 	binary_feat(facilities, 'electricity', apart)
-	binary_feat(facilities, 'heating', apart)
+	binary_feat(facilities, 'heating_device', apart)
 	binary_feat(facilities, 'running water', apart)
 
 	#address
@@ -251,10 +251,7 @@ def expand_features(apart):
 	num_rooms = apart['number_rooms']
 	p = re.compile(r'\d')
 	list_rooms = p.findall(num_rooms)
-	if type(list_rooms) == None:
-		apart['number_of_rooms'] = ''
-		apart['number_of_bedrooms'] = ''
-	elif len(list_rooms) == 2:
+	if len(list_rooms) == 2:
 		apart['number_of_rooms'] = int(list_rooms[0])
 		apart['number_of_bedrooms'] = int(list_rooms[1])
 	elif len(list_rooms) == 1:
@@ -265,7 +262,7 @@ def expand_features(apart):
 		apart['number_of_bedrooms'] = ''
 
 	#CH boiler again
-
+	print apart['heating']
 	boiler_again = apart['heating'].lower()
 	binary_feat(boiler_again, 'ch boiler', apart, 'CH_boiler')
 	binary_feat(boiler_again, 'floor insulation (partial)', apart, 'partial_floor_insulation')
@@ -290,9 +287,7 @@ def expand_features(apart):
 	year = apart['year_of_construction'].lower()
 	y = re.compile(r'\d\d\d\d')
 	o = y.findall(year)
-	if type(o) == None:
-		apart['final_year_of_construction'] = ''
-	elif len(o) == 2:
+	if len(o) == 2:
 		apart['final_year_of_construction'] = int(o[1])
 	elif len(o) == 1:
 		apart['final_year_of_construction'] = int(o[0])
@@ -304,7 +299,7 @@ def expand_features(apart):
 	n = p.search(located)
 	if located.find('ground floor') != -1:
 		apart['level'] = 0
-	elif type(n) != None:
+	elif n is not None:
 		apart['level'] = int(n.group())
 	else:
 		apart['level'] = ''
@@ -312,15 +307,11 @@ def expand_features(apart):
 	#number of stories
 	stories = apart['number_of_layers'].lower()
 	n = p.search(stories)
-	if type(n) != None:
+	if n is not None:
 		apart['number_of_stories'] = int(n.group())
 	else:
 		apart['number_of_stories'] = ''
 
-
-
-p = get_features.get_features('http://www.funda.nl/koop/amsterdam/appartement-49502091-tolstraat-36/kenmerken/')
-expand_features(p)
 
 
 
