@@ -248,17 +248,81 @@ def expand_features(apart):
 
 	#number of rooms
 
-	num_rooms
+	num_rooms = apart['number_rooms']
+	p = re.compile(r'\d')
+	list_rooms = p.findall(num_rooms)
+	if type(list_rooms) == None:
+		apart['number_of_rooms'] = ''
+		apart['number_of_bedrooms'] = ''
+	elif len(list_rooms) == 2:
+		apart['number_of_rooms'] = int(list_rooms[0])
+		apart['number_of_bedrooms'] = int(list_rooms[1])
+	elif len(list_rooms) == 1:
+		apart['number_of_rooms'] = int(list_rooms[0])
+		apart['number_of_bedrooms']
+	else:
+		apart['number_of_rooms'] = ''
+		apart['number_of_bedrooms'] = ''
+
+	#CH boiler again
+
+	boiler_again = apart['heating'].lower()
+	binary_feat(boiler_again, 'ch boiler', apart, 'CH_boiler')
+	binary_feat(boiler_again, 'floor insulation (partial)', apart, 'partial_floor_insulation')
+	binary_feat(boiler_again, 'floor insulation (complete)', apart, 'complete_floor_insulation')
+	binary_feat(boiler_again, 'communal', apart, 'communal_central_heating')
+	binary_feat(boiler_again, 'fireplace', apart, 'fireplace')
+	binary_feat(boiler_again, 'district heating', apart, 'district_heating')
+
+	#specific info
+
+	spec = apart['specific'].lower()
+	binary_feat(spec, 'listed building', apart, 'listed_building')
+	binary_feat(spec, 'monument', apart, 'monumental_building')
+	binary_feat(spec, 'furnished', apart, 'furnished')
+	binary_feat(spec, 'carpets', apart, 'furnished_carpets')
+	binary_feat(spec, 'curtains', apart, 'furnished_curtains')
+	binary_feat(spec, 'protected townscape', apart, 'protected_view')
+
+	#Year of construction
+	#we extract only the "end date" of the construction
+
+	year = apart['year_of_construction'].lower()
+	y = re.compile(r'\d\d\d\d')
+	o = y.findall(year)
+	if type(o) == None:
+		apart['final_year_of_construction'] = ''
+	elif len(o) == 2:
+		apart['final_year_of_construction'] = int(o[1])
+	elif len(o) == 1:
+		apart['final_year_of_construction'] = int(o[0])
+	else:
+		apart['final_year_of_construction'] = ''
+
+	#located at
+	located = apart['located_at'].lower()
+	n = p.search(located)
+	if located.find('ground floor') != -1:
+		apart['level'] = 0
+	elif type(n) != None:
+		apart['level'] = int(n.group())
+	else:
+		apart['level'] = ''
+
+	#number of stories
+	stories = apart['number_of_layers'].lower()
+	n = p.search(stories)
+	if type(n) != None:
+		apart['number_of_stories'] = int(n.group())
+	else:
+		apart['number_of_stories'] = ''
 
 
 
 p = get_features.get_features('http://www.funda.nl/koop/amsterdam/appartement-49502091-tolstraat-36/kenmerken/')
 expand_features(p)
 
-print p['street']
-print p['street number']
-print type(p['intern'])
-print p['postcode']
+
 
 
 
