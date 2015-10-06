@@ -262,7 +262,6 @@ def expand_features(apart):
 		apart['number_of_bedrooms'] = ''
 
 	#CH boiler again
-	print apart['heating']
 	boiler_again = apart['heating'].lower()
 	binary_feat(boiler_again, 'ch boiler', apart, 'CH_boiler')
 	binary_feat(boiler_again, 'floor insulation (partial)', apart, 'partial_floor_insulation')
