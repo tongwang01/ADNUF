@@ -61,6 +61,7 @@ def main():
 	threading_output = unicodecsv.writer(open("FundaInventoryLatestExpanded.csv", "wb"), encoding='utf-8', delimiter='|')
 	sample = get_features.get_features(sample_url)
 	sample["type"] = "sample"
+	expand_features.expand_features(sample)
 	threading_output.writerow(sample.keys())
 	for row in inventory:
 		threading_output.writerow(row.values())
