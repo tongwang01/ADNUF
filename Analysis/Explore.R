@@ -2,8 +2,9 @@ library(psych)
 library(ggplot2)
 library(caret)
 library(sqldf)
+
 #Read in data file
-input <- read.csv("~/ADNUF/Scripts/fundaInventory_all_threading_20150815.csv",
+input <- read.csv("~/ADNUF/Scripts/FundaExpanded_20151005_added_header.csv",
                   sep = "|")
 str(input)
 
@@ -36,6 +37,7 @@ qplot(x=living_area, y = price, data = verkocht)
 #Find out what influences price per square meter
 verkocht$pps <- verkocht$price / verkocht$living_area
 verkocht$type_of_apartment <- as.character(verkocht$type_of_apartment)
+qplot(x=type_of_apartment, y=pps, data=verkocht)
 
 #Find pps per neighborhood
 verkocht2015 <- subset(verkocht, date >= "2015-01-01")
@@ -53,3 +55,23 @@ group by 1 order by 2 desc
 t <- merge(t_2015, t_2014, by = "hood")
 
 write.csv(t, file = "ppsByHood.csv", row.names = FALSE)
+
+
+#Build a linear model
+#Make a copy to handle NA
+df1 <- verkocht2015
+df1[is.na(df1)] <- 0
+df1$city <- as.character(df1$city)
+df1$region <- as.character(df1$region)
+df1$snapshot_date <- as.Date(df1$snapshot_date)
+str(df1, list.len = 170)
+df2 <- df1[,!colnames(df1) %in% c("city", "region", "snapshot_date")]
+#df2 <- subset(df1, select = -c("city", "region", "snapshot_date"))
+
+df3 <- df2[, colSums(df2 != 0) > 0]
+
+fit <- train(price ~., data = df3[1:1000,], method = "glm")
+turd <- glm(price ~., data = df3, family = "gaussian")
+
+
+summary(df3$complete_floor_insulation)
