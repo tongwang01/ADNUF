@@ -21,8 +21,8 @@ plot(s)
 
 #Zoom in on all sold properties. What can we find?
 verkocht <- subset(input, type == "verkocht")
-describe(verkocht)
-describe.by(verkocht, group = "hood")
+#describe(verkocht)
+#describe.by(verkocht, group = "hood")
 summary(verkocht)
 
 #Living area and price
@@ -70,8 +70,13 @@ df2 <- df1[,!colnames(df1) %in% c("city", "region", "snapshot_date")]
 
 df3 <- df2[, colSums(df2 != 0) > 0]
 
-fit <- train(price ~., data = df3[1:1000,], method = "glm")
-turd <- glm(price ~., data = df3, family = "gaussian")
+#fit <- train(price ~., data = df3[1:10,], method = "glm")
+
+fit2 <- glm(pps ~ final_year_of_construction + jacuzzi + number.of.showers + 
+              monumental_building + number.of.baths + near.busy.road+
+              central.location + number_of_bathrooms + hood,
+            data = df3, family = "gaussian")
+summary(fit2)
 
 
 summary(df3$complete_floor_insulation)
