@@ -5,8 +5,8 @@ import datetime
 #Create sample url for testing
 error_url = "http://www.funda.nl/huur/verhuurd/amsterdam/appartement-48332819-prinsengracht-699-ii/"
 base_url = "http://www.funda.nl"
-sample_url = "http://www.funda.nl/koop/amsterdam/appartement-49470962-cruquiuskade-143/"
-sample_url_rented = "http://www.funda.nl/koop/verkocht/amsterdam/huis-48992486-landsmeerderdijk-88/"
+sample_url = "http://www.funda.nl/en/koop/amsterdam/appartement-49675451-blankenstraat-181-d/"
+sample_url_verkocht = "http://www.funda.nl/koop/verkocht/amsterdam/appartement-49655253-blankenstraat-278/"
 
 #Open output file
 #output_file = csv.writer(open("fundaAmsterdamFeatures.csv", "wb"))
@@ -356,5 +356,6 @@ def get_kenmerken(page, name):
 if __name__ == "__main__":
 #	get_features(sample_url)
 #	get_features(sample_url_rented)
-	print get_features(sample_url)
+	print "sample_url", get_features(sample_url)
+	print "sample_url", get_features(sample_url_verkocht)
 #	print get_features(sample_url_rented)
