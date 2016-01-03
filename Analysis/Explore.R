@@ -17,7 +17,7 @@ s <- aggregate(input$price, by=list(input$date), FUN=function(x){NROW(x)})
 str(s)
 plot(s)
 #Note: data seems to be a rolling 18 months 
-#Question: does Funda have more historical data? They must..
+#Question: does Funda have more historical data? 
 
 #Zoom in on all sold properties. What can we find?
 verkocht <- subset(input, type == "verkocht")

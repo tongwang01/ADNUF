@@ -4,7 +4,7 @@ library(caret)
 library(sqldf)
 
 #Read in data file
-input <- read.csv("~/ADNUF/Scripts/FundaExpanded_20151005_added_header.csv",
+input <- read.csv("~/ADNUF/Scripts/Rotterdam/FundaInventoryRotterdamLatestExpanded.csv",
                   sep = "|")
 str(input, list.len = 200)
 
